@@ -38,16 +38,15 @@ class OrderView(APIView):
         try:
             orders = OrderModel.objects.filter(account__token=request.GET['token']).values()
             return JsonResponse({
-                "code":0,
-                "data":list(orders)
+                "code": 0,
+                "data": list(orders)
             })
         except Exception as e:
             print(e)
             return JsonResponse({
-                "code":1,
-                "errors":"Something went wrong"
+                "code": 1,
+                "errors": "Something went wrong"
             })
-
 
 
 class OrderItemView(APIView):
@@ -73,10 +72,8 @@ class OrderItemView(APIView):
             })
 
     def get(self, request):
-        orderItems = OrderItem.objects.get(order__order_id= request.GET['orderId'])
+        orderItems = OrderItem.objects.get(order__order_id=request.GET['orderId'])
         return JsonResponse({
             "code": 0,
             "data": list(orderItems)
         })
-
-
