@@ -75,7 +75,7 @@ class OrderItemView(APIView):
     def get(self, request):
         orderItems = OrderItem.objects.get(order__order_id= request.GET['orderId'])
         return JsonResponse({
-            "code":0,
+            "code": 0,
             "data": list(orderItems)
         })
 
