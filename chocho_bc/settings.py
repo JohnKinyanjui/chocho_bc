@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from .config import *
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-sf@x2!c7a8q-(m*o8_69i4c62=v88t6d+dh-8!9l1h-9tl9*vk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '.herokuapps.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'chochobc.herokuapp.com']
 
 
 # Application definition
@@ -27,7 +27,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
-    'products'
+    'products',
+    'orders'
 ]
 
 MIDDLEWARE = [

@@ -91,10 +91,10 @@ class AccountGroupView(APIView):
 
     def get(self, request):
         try:
-            accounts = AccountModel.objects.filter(accounts__token=request.GET['token']).all().values()
+            groups = AccountGroup.objects.filter(account__token=request.GET['token']).all().values()
             return JsonResponse({
                 "code": 0,
-                "accounts": list(accounts)
+                "data": list(groups)
             })
         except Exception as e:
             print(e)
@@ -102,3 +102,47 @@ class AccountGroupView(APIView):
                 "code": 1,
                 "accounts": []
             })
+
+
+class AccountGroupItemView(APIView):
+    def post(self, request):
+        data = request.data
+        try:
+            if request.POST['action'] == "create":
+                serializer = AccountGroupItemSerializer(data=data)
+                if serializer.is_valid():
+                    return JsonResponse({
+                        "code": 0,
+                        "message": "New Account Item"
+                    })
+                return JsonResponse({
+                    "code": 1,
+                    "message": "Something went wrong"
+                })
+
+            elif request.POST['action'] == "update":
+                product = ProductModel.objects.get(product_id=data['product'])
+                AccountGroupItem.objects.filter(group__account__token=data['token'], group__groupId=data['groupId'], name=data['name']).update(product=product)
+                return JsonResponse({
+                    "code": 0,
+                    "message": "account group item updated"
+                })
+        except Exception as e:
+            return JsonResponse({
+                "code": 1,
+                "message": "Something went wrong"
+            })
+
+    def get(self, request):
+        try:
+            items = AccountGroupItem.objects.filter(account__token=request.GET['token']).all().values('name', 'details', 'product__image', 'product__name')
+            return JsonResponse({
+                "code": 0,
+                "data": list(items)
+            })
+        except Exception as e:
+            return JsonResponse({
+                "code": 0,
+                "errors": "Something went wrong"
+            })
+
