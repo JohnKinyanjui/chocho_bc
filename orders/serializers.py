@@ -8,7 +8,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderModel
         fields = ['account']
-        read_only_fields = ['orderId']
+        read_only_fields = ['orderId', 'paid', 'totalCost', 'delivered']
 
     def validate_account(self, account: str):
         try:

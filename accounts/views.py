@@ -1,21 +1,70 @@
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from .serializers import *
+import uuid
 
 
-# Create your views here.
-class AccountView(APIView):
+
+class OtpView(APIView):
+    """
+    handles creation of otp and confirmation
+    """
     def post(self, request):
+        data = request.data
+        #sends otp to the user
+        
         try:
-            serializer = AccountSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
+            phoneNumber = "254"+data["phoneNumber"][1:]
+            
+            phoneExists = AccountOtp.objects.filter(phoneNumber=phoneNumber).exists()
+            otp = "000000"
+            print(phoneExists)
+            if phoneExists:
+                AccountOtp.objects.filter(phoneNumber=phoneNumber).update(otp=otp)
                 return JsonResponse({
                     "code": 0,
-                    "message": serializer.data
+                    "message": "Otp send successfully"
                 })
+                
+            otp = AccountOtp(
+                phoneNumber = phoneNumber,
+                otp = otp
+            )
+            otp.save()
             return JsonResponse({
                 "code": 0,
+                "message": "Otp send successfully"
+            })
+        except Exception as e:
+            print(e);
+            return JsonResponse({
+                "code": 1,
+                "message": "Something went wrong",
+                "error": str(e)
+            })                    
+            
+
+class AccountView(APIView):
+    """
+    Account View the creation of accounts and sign up page
+    """
+    def post(self, request):
+        # creates new accounts
+        try:
+            token = "djskhjskhfjshfskjhkh"
+            data = request.data
+            print(data)
+            serializer = AccountSerializer(data=data)
+            print(request.data)
+            if serializer.is_valid():
+                serializer.save()
+                AccountModel.objects.filter(phoneNumber=data['phoneNumber']).update(token=token)
+                return JsonResponse({
+                    "code": 0,
+                    "token": token
+                })
+            return JsonResponse({
+                "code": 1,
                 "message": serializer.errors
             })
 
@@ -23,25 +72,33 @@ class AccountView(APIView):
             print(str(e))
             return JsonResponse({
                 "code": 1,
-                "message": ""
+                "error": str(e)
             })
 
     def get(self, request):
         data = request.GET
         if request.GET['action'] == "auth":
             try:
-                isAuthenticated = AccountOtp.objects.filter(phoneNumber=data['phoneNumber'], otp=data['otp'])
-                token = ""
+                isAuthenticated = AccountOtp.objects.filter(phoneNumber=data['phoneNumber'], otp=data['otp']).exists()
+                token = "dfjfkdjhaklhjdjalhfau"
                 if isAuthenticated:
-                    AccountModel.objects.filter(phoneNumber=data['phoneNumber']).update(token=token)
+                    print(isAuthenticated)
+                    accountExists = AccountModel.objects.filter(phoneNumber=data['phoneNumber']).exists()
+                    print(accountExists)
+                    if accountExists:
+                        AccountModel.objects.filter(phoneNumber=data['phoneNumber']).update(token=token)
+                        return JsonResponse({
+                            "code": 0,
+                            "token": token
+                        })
                     return JsonResponse({
                         "code": 0,
-                        "token": token
+                        "message": "Ready to Sign Up"
                     })
                 return JsonResponse({
-                    "code": 1,
-                    "message": "Not Authorized"
-                })
+                    "code":1,
+                    "message": "No Such Otp"
+                })    
             except Exception as e:
                 return JsonResponse({
                     "code": 1,
@@ -62,12 +119,10 @@ class AccountView(APIView):
                 })
 
 
-"""
-handles grups 
-"""
-
-
 class AccountGroupView(APIView):
+    """
+    handles groups that belong to a certain user 
+    """
     def post(self, request):
         try:
             serializers = AccountGroupSerializer(data=request.data)
@@ -108,26 +163,29 @@ class AccountGroupItemView(APIView):
     def post(self, request):
         data = request.data
         try:
-            if request.POST['action'] == "create":
-                serializer = AccountGroupItemSerializer(data=data)
+            if data['action'] == "create":
+                serializer = AccountGroupItemSerializer(data=data["data"])
                 if serializer.is_valid():
+                    serializer.save()
                     return JsonResponse({
                         "code": 0,
                         "message": "New Account Item"
                     })
                 return JsonResponse({
                     "code": 1,
-                    "message": "Something went wrong"
+                    "message": serializer.errors
                 })
 
-            elif request.POST['action'] == "update":
+            elif data['action'] == "update":
                 product = ProductModel.objects.get(product_id=data['product'])
-                AccountGroupItem.objects.filter(group__account__token=data['token'], group__groupId=data['groupId'], name=data['name']).update(product=product)
+                AccountGroupItem.objects.filter(group__account__token=data['token'], group__groupId=data['groupId'],
+                                                name=data['name']).update(product=product)
                 return JsonResponse({
                     "code": 0,
                     "message": "account group item updated"
                 })
         except Exception as e:
+            print(e)
             return JsonResponse({
                 "code": 1,
                 "message": "Something went wrong"
@@ -135,14 +193,18 @@ class AccountGroupItemView(APIView):
 
     def get(self, request):
         try:
-            items = AccountGroupItem.objects.filter(account__token=request.GET['token']).all().values('name', 'details', 'product__image', 'product__name')
+            items = AccountGroupItem.objects.filter(group__account__token=request.GET['token']).all().values('name', 'details',
+                                                                                                      'phoneNumber',
+                                                                                                      'product_id',
+                                                                                                      'product__image',
+                                                                                                      'product__name')
             return JsonResponse({
                 "code": 0,
                 "data": list(items)
             })
         except Exception as e:
+            print(e)
             return JsonResponse({
                 "code": 0,
                 "errors": "Something went wrong"
             })
-
