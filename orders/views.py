@@ -16,24 +16,40 @@ from accounts.models import *
 class OrderView(APIView):
     def post(self, request):
         data = request.data
+        
+        total = 0.0;
         try:
-            serializer = OrderSerializer(data={"account": data["account"]})
+            body = {
+                "account": data["account"],
+                "userId": data["userId"],
+                "delivery_time": data['delivery_time'],
+                "delivery_date": data['delivery_date']
+            }
+            serializer = OrderSerializer(data=body)
             if serializer.is_valid():
                 serializer.save()
-                items = AccountGroupItem.objects.filter(group__account__token=data['token'],
-                                                        group__groupId=data['groupId']).all().values()
-                order = OrderModel.objects.get(order_id=serializer.data['orderId'])
-                for item in items:
-                    orderItem = OrderItem(
+                groups = AccountGroupItem.objects.filter(group__account__token=data['account'],
+                                                        group__groupId=data['groupId']).all()
+                print(serializer.data)
+                order = OrderModel.objects.get(orderId=serializer.data['orderId'])                
+                for group in groups:
+                    order_item = OrderItem(
                         order=order,
-                        product=item.product,
-                        name=item.name
+                        product=group.product,
+                        name=group.name
                     )
-                    orderItem.save()
+                    order_item.save()
+                    total = total + float(group.product.cost)
+                 
+                order.totalCost = total
+                order.save()    
 
                 return JsonResponse({
                     "code": 0,
-                    "message": "New Order Created"
+                    "data":{
+                        "orderId": order.orderId,
+                        "total": order.totalCost,
+                    }
                 })
 
             return JsonResponse({

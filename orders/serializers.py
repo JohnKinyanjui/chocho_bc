@@ -1,3 +1,4 @@
+import uuid
 from rest_framework import serializers
 from .models import *
 
@@ -7,15 +8,20 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderModel
-        fields = ['account']
+        fields = ['orderId', 'account', 'delivery_time', 'delivery_date']
         read_only_fields = ['orderId', 'paid', 'totalCost', 'delivered']
+    
+    def validate_orderId(self, orderId: str):
+        return uuid.uuid4()    
 
     def validate_account(self, account: str):
-        try:
-            account = AccountModel.objects.get(token=account)
-            return account
-        except Exception as e:
-            return serializers.ValidationError("Authorization Failed")
+        print(account)
+        accountExists = AccountModel.objects.filter(token=account).exists()
+        if(accountExists):
+            ac = AccountModel.objects.get(token=account)
+            return ac
+        else:
+            return serializers.ValidationError("Account does not exists")
 
 
 class OrderItemSerializer(serializers.ModelSerializer):

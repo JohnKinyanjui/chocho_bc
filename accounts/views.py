@@ -193,11 +193,14 @@ class AccountGroupItemView(APIView):
 
     def get(self, request):
         try:
-            items = AccountGroupItem.objects.filter(group__account__token=request.GET['token']).all().values('name', 'details',
+            items = AccountGroupItem.objects.filter(group__account__token=request.GET['token']).all().values('name', 
+                                                                                                             'details',
                                                                                                       'phoneNumber',
                                                                                                       'product_id',
                                                                                                       'product__image',
-                                                                                                      'product__name')
+                                                                                                      'product__name',
+                                                                                                      'product__cost'
+                                                                                                      )
             return JsonResponse({
                 "code": 0,
                 "data": list(items)

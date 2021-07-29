@@ -10,6 +10,8 @@ class OrderModel(models.Model):
     orderId = models.UUIDField(default=uuid.uuid4(), unique=True, auto_created=True)
     account = models.ForeignKey(AccountModel, on_delete=models.CASCADE)
     date_created = models.DateField(auto_now=True)
+    delivery_time = models.TimeField(default='11:11:11')
+    delivery_date = models.DateField(default='2021-09-11')
     totalCost = models.FloatField(default=0)
     delivered = models.BooleanField(default=False)
     paid = models.BooleanField(default=False)
