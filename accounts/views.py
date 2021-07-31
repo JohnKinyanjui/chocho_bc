@@ -146,8 +146,7 @@ class AccountGroupView(APIView):
 
     def get(self, request):
         try:
-            groups = AccountGroup.objects.filter(account__token=request.GET['token'], 
-                                                 group__groupId=request.GET['groupId']).all().values()
+            groups = AccountGroup.objects.filter(account__token=request.GET['token']).all().values()
             return JsonResponse({
                 "code": 0,
                 "data": list(groups)
@@ -194,14 +193,16 @@ class AccountGroupItemView(APIView):
 
     def get(self, request):
         try:
-            items = AccountGroupItem.objects.filter(group__account__token=request.GET['token']).all().values('name', 
-                                                                                                             'details',
-                                                                                                      'phoneNumber',
-                                                                                                      'product_id',
-                                                                                                      'product__image',
-                                                                                                      'product__name',
-                                                                                                      'product__cost'
-                                                                                                      )
+            items = AccountGroupItem.objects.filter(
+                group__account__token=request.GET['token'],
+                group__groupId=request.GET['groupId']).all().values('name',  
+                                                                    'details',
+                                                                    'phoneNumber',
+                                                                    'product_id',
+                                                                    'product__image',
+                                                                    'product__name',
+                                                                    'product__cost'
+                                                                    )
             return JsonResponse({
                 "code": 0,
                 "data": list(items)
