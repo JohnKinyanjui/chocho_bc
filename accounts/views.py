@@ -146,7 +146,8 @@ class AccountGroupView(APIView):
 
     def get(self, request):
         try:
-            groups = AccountGroup.objects.filter(account__token=request.GET['token']).all().values()
+            groups = AccountGroup.objects.filter(account__token=request.GET['token'], 
+                                                 group__groupId=request.GET['groupId']).all().values()
             return JsonResponse({
                 "code": 0,
                 "data": list(groups)
